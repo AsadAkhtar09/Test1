@@ -74,7 +74,7 @@ contract TestToken is IERC20 {
         return true;
     }
 
-    function mint(uint256 amount) public {
+    function mint(uint256 amount) public  {
         require(amount > 0, "Amount should be greater than 0");
         require(msg.sender != address(0), "Mint to zero address");
         _totalSupply += amount;

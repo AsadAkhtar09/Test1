@@ -1,5 +1,7 @@
 const HDWalletProvider = require('@truffle/hdwallet-provider');
 const { Web3 } = require('web3');
+const { hdkey } = require('ethereumjs-wallet');
+const bip39 = require('bip39');
 
 const seedPhrase = 'unknown marriage riot wide purpose talk vocal position mosquito tornado round own';
 const providerUrl = 'https://eth-sepolia.g.alchemy.com/v2/h_5Q7WPpI2yRbWyVeh56j7Yd4fLWO252';
@@ -17,17 +19,21 @@ const contractABI = [{"inputs":[],"stateMutability":"nonpayable","type":"constru
 
 const contract = new web3.eth.Contract(contractABI, contractAddress);
 
+
 function generateAddresses(seedPhrase, numAddresses) {
+    const seed = bip39.mnemonicToSeedSync(seedPhrase); 
+    const root = hdkey.fromMasterSeed(seed);
     const addresses = [];
+
     for (let i = 0; i < numAddresses; i++) {
-        const acct = web3.eth.accounts.create(web3.utils.keccak256(seedPhrase + i));
-        addresses.push(acct.address);
+        const addrNode = root.derivePath(`m/44'/60'/0'/0/${i}`);
+        const wallet = addrNode.getWallet();
+        addresses.push(wallet.getAddressString());
+        console.log(`Address ${i + 1}: ${addresses[i]}`);
     }
+
     return addresses;
 }
-
-
-
 
 async function sendTokens(addresses) {
     for (const address of addresses) {
@@ -49,6 +55,7 @@ async function main() {
     const numAddresses = 10000;
     const addresses = generateAddresses(seedPhrase, numAddresses);
     await sendTokens(addresses);
+
 }
 
 main().then(() => {
